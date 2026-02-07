@@ -1,12 +1,11 @@
 "use client";
-import ProfileList from '@/components/ProfileList';
-import { logoutUser } from '@/lib/auth';
+import CreateProfileForm from '@/components/CreateProfileForm';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-export default function DashboardPage() {
+export default function NewProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -25,17 +24,8 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <ProfileList />
-      <button
-        onClick={async () => {
-          await logoutUser();
-          router.push('/login');
-        }}
-        className="mt-8 bg-red-600 text-white p-2 rounded"
-      >
-        Log Out
-      </button>
+      <h1 className="text-xl font-bold mb-4">Create a New Profile</h1>
+      <CreateProfileForm />
     </div>
   );
 }
