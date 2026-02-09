@@ -1,13 +1,16 @@
 // src/lib/profiles.ts
 import {
-    addDoc, collection,
+    addDoc,
+    collection,
     doc,
     getDocs,
     query,
-    serverTimestamp, updateDoc,
-    where
+    serverTimestamp,
+    updateDoc,
+    where,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { initializeTraitsForProfile } from './traits';
 
 export interface Profile {
   id: string;
@@ -19,11 +22,13 @@ export interface Profile {
   createdAt: any;
 }
 
-/** Creates a new profile document for the specified user. Returns the new document ID. */
+/**
+ * Creates a new profile doc for a user and initializes its traits doc.
+ */
 export async function createProfile(userId: string, name: string) {
-  // Placeholder genome values (will be computed in a later phase)
   const defaultGenomeBlocks = [0, 0, 0, 0, 0, 0, 0, 0];
   const defaultGenomeString = '000-000-000-000-000-000-000-000';
+
   const profileRef = await addDoc(collection(db, 'profiles'), {
     userId,
     name,
@@ -32,25 +37,37 @@ export async function createProfile(userId: string, name: string) {
     genomeString: defaultGenomeString,
     createdAt: serverTimestamp(),
   });
+
+  // Initialize traits doc tied to this profile id
+  await initializeTraitsForProfile(userId, profileRef.id);
+
   return profileRef.id;
 }
 
-/** Creates a default profile for a newly registered user and updates the user's profile count. */
+/**
+ * Creates the default "Primary Profile" for a new user.
+ * Sets profileCount = 1 on the user document.
+ */
 export async function createDefaultProfileForUser(userId: string) {
   const id = await createProfile(userId, 'Primary Profile');
+
   const userDoc = doc(db, 'users', userId);
   await updateDoc(userDoc, { profileCount: 1 });
+
   return id;
 }
 
-/** Retrieves all profiles belonging to a user as a simple array. */
+/**
+ * Fetch all profiles belonging to user.
+ */
 export async function getProfilesForUser(userId: string): Promise<Profile[]> {
   const q = query(collection(db, 'profiles'), where('userId', '==', userId));
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((docSnap) => {
-    const data = docSnap.data();
+
+  return snapshot.docs.map((snap) => {
+    const data = snap.data() as any;
     return {
-      id: docSnap.id,
+      id: snap.id,
       userId: data.userId,
       name: data.name,
       genomeVersion: data.genomeVersion,

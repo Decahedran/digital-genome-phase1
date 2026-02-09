@@ -11,16 +11,14 @@ import { auth, db } from './firebase';
 /**
  * Registers a new user with email and password, then creates a Firestore document
  */
-export async function registerUser(
-  email: string,
-  password: string,
-  displayName?: string
-) {
+import { createDefaultProfileForUser } from './profiles';
+
+export async function registerUser(email: string, password: string, displayName?: string) {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   if (displayName) {
     await updateProfile(cred.user, { displayName });
   }
-  // Create a user document in Firestore
+  // Create the user document
   const ref = doc(db, 'users', cred.user.uid);
   await setDoc(ref, {
     email,
@@ -29,7 +27,10 @@ export async function registerUser(
     profileCount: 0,
     plan: 'free',
   });
+  // Automatically create a default profile and update profileCount
+  await createDefaultProfileForUser(cred.user.uid);
 }
+
 
 /**
  * Logs a user in with email and password

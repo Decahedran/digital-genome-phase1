@@ -1,5 +1,6 @@
 "use client";
 
+import TraitEditor from "@/components/TraitEditor";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -20,11 +21,12 @@ export default function ProfileDetailPage() {
   const profileId = params?.profileId;
 
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<ProfileDoc | null>(null);
+  const [profile, setProfile] = useState<(ProfileDoc & { id: string }) | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // If the route hasn't provided the param yet, wait.
     if (!profileId) return;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -50,7 +52,7 @@ export default function ProfileDetailPage() {
           return;
         }
 
-        setProfile(data);
+        setProfile({ id: snap.id, ...data });
         setLoading(false);
       } catch (e: any) {
         console.error(e);
@@ -62,9 +64,9 @@ export default function ProfileDetailPage() {
     return () => unsubscribe();
   }, [profileId, router]);
 
-  if (loading) return <p>Loading…</p>;
-  if (error) return <p className="text-red-600">Error: {error}</p>;
-  if (!profile) return <p>No profile found.</p>;
+  if (loading) return <p className="p-4">Loading…</p>;
+  if (error) return <p className="p-4 text-red-600">Error: {error}</p>;
+  if (!profile) return <p className="p-4">No profile found.</p>;
 
   return (
     <div className="p-4 space-y-2">
@@ -81,9 +83,11 @@ export default function ProfileDetailPage() {
       </p>
 
       <p className="text-sm text-gray-600">
-        Created at:{" "}
-        {profile.createdAt?.toDate?.().toLocaleString?.() ?? "N/A"}
+        Created at: {profile.createdAt?.toDate?.().toLocaleString?.() ?? "N/A"}
       </p>
+
+      {/* Trait system testing UI */}
+      <TraitEditor profileId={profile.id} />
     </div>
   );
 }
