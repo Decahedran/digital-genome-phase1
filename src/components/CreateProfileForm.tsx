@@ -1,4 +1,5 @@
 "use client";
+
 import { auth } from '@/lib/firebase';
 import { createProfile } from '@/lib/profiles';
 import { useRouter } from 'next/navigation';
@@ -14,42 +15,46 @@ export default function CreateProfileForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
     const user = auth.currentUser;
     if (!user) {
       setError('You must be logged in to create a profile.');
       setLoading(false);
       return;
     }
+
     try {
-      const id = await createProfile(user.uid, name);
+      const id = await createProfile(user.uid, name.trim());
       router.push(`/profiles/${id}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create profile.';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md space-y-3">
-      <label className="block">
-        <span className="text-sm font-medium">Profile Name</span>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="profile-name" className="label">
+          Profile name
+        </label>
         <input
+          id="profile-name"
           type="text"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 w-full border p-2 rounded"
+          placeholder="e.g. Primary Profile"
         />
-      </label>
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-500"
-      >
-        {loading ? 'Creating…' : 'Create Profile'}
+      </div>
+
+      <button type="submit" disabled={loading} className="btn btn-primary w-full">
+        {loading ? 'Creating profile…' : 'Create profile'}
       </button>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </form>
   );
 }

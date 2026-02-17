@@ -57,6 +57,7 @@ export default function GeneAAssessmentForm({ profileId }: GeneAAssessmentFormPr
     const inches = Number(inchesInput);
     if (!Number.isFinite(feet) || !Number.isFinite(inches)) return null;
     if (feet < 0 || inches < 0 || inches >= 12) return null;
+
     return imperialToCentimeters(feet, inches);
   }, [heightCmInput, feetInput, inchesInput, heightUnit]);
 
@@ -120,7 +121,7 @@ export default function GeneAAssessmentForm({ profileId }: GeneAAssessmentFormPr
       });
 
       router.push(`/profiles/${profileId}`);
-    } catch (err) {
+    } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to save assessment.';
       setError(message);
     } finally {
@@ -129,135 +130,145 @@ export default function GeneAAssessmentForm({ profileId }: GeneAAssessmentFormPr
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-xl space-y-4 rounded border p-4">
-      <h2 className="text-xl font-semibold">Gene A — Physicality Assessment</h2>
+    <section className="card card-body">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="label" htmlFor="genderIdentity">
+              Gender Identity
+            </label>
+            <select
+              id="genderIdentity"
+              value={genderIdentity}
+              onChange={(e) => setGenderIdentity(e.target.value as GenderIdentity)}
+            >
+              {genderOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Gender Identity</span>
-        <select
-          value={genderIdentity}
-          onChange={(e) => setGenderIdentity(e.target.value as GenderIdentity)}
-          className="rounded border p-2"
-        >
-          {genderOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Race / Ethnicity</span>
-        <select
-          value={raceCategory}
-          onChange={(e) => setRaceCategory(e.target.value as RaceCategory)}
-          className="rounded border p-2"
-        >
-          {raceOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Birth Date</span>
-        <input
-          type="date"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
-          className="rounded border p-2"
-          required
-        />
-      </label>
-
-      <div className="space-y-2">
-        <span className="text-sm font-medium">Height Unit</span>
-        <div className="flex gap-4">
-          <label className="inline-flex items-center gap-2">
-            <input
-              type="radio"
-              name="height-unit"
-              checked={heightUnit === 'metric'}
-              onChange={() => setHeightUnit('metric')}
-            />
-            Metric (cm)
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input
-              type="radio"
-              name="height-unit"
-              checked={heightUnit === 'imperial'}
-              onChange={() => setHeightUnit('imperial')}
-            />
-            Imperial (ft/in)
-          </label>
+          <div>
+            <label className="label" htmlFor="raceCategory">
+              Race / Ethnicity
+            </label>
+            <select
+              id="raceCategory"
+              value={raceCategory}
+              onChange={(e) => setRaceCategory(e.target.value as RaceCategory)}
+            >
+              {raceOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
 
-      {heightUnit === 'metric' ? (
-        <label className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Height (cm)</span>
+        <div>
+          <label className="label" htmlFor="birthDate">
+            Birth Date
+          </label>
           <input
-            type="number"
-            min={1}
-            step="0.1"
-            value={heightCmInput}
-            onChange={(e) => setHeightCmInput(e.target.value)}
-            className="rounded border p-2"
-            placeholder="e.g. 175"
+            id="birthDate"
+            type="date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
             required
           />
-        </label>
-      ) : (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Feet</span>
-            <input
-              type="number"
-              min={0}
-              step={1}
-              value={feetInput}
-              onChange={(e) => setFeetInput(e.target.value)}
-              className="rounded border p-2"
-              placeholder="e.g. 5"
-              required
-            />
-          </label>
-
-          <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Inches</span>
-            <input
-              type="number"
-              min={0}
-              max={11}
-              step={1}
-              value={inchesInput}
-              onChange={(e) => setInchesInput(e.target.value)}
-              className="rounded border p-2"
-              placeholder="e.g. 11"
-              required
-            />
-          </label>
         </div>
-      )}
 
-      <p className="text-sm text-zinc-700 dark:text-zinc-200">
-        Normalized height (cm):{' '}
-        <span className="font-semibold">{previewHeightCm ? previewHeightCm : '—'}</span>
-      </p>
+        <fieldset className="space-y-3 rounded-xl border p-4">
+          <legend className="px-1 text-sm font-semibold">Height</legend>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-500"
-      >
-        {loading ? 'Saving…' : 'Save Gene A Assessment'}
-      </button>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name="height-unit"
+                checked={heightUnit === 'metric'}
+                onChange={() => setHeightUnit('metric')}
+              />
+              Metric (cm)
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="radio"
+                name="height-unit"
+                checked={heightUnit === 'imperial'}
+                onChange={() => setHeightUnit('imperial')}
+              />
+              Imperial (ft / in)
+            </label>
+          </div>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-    </form>
+          {heightUnit === 'metric' ? (
+            <div>
+              <label className="label" htmlFor="heightCm">
+                Height in centimeters
+              </label>
+              <input
+                id="heightCm"
+                type="number"
+                min={1}
+                step="0.1"
+                value={heightCmInput}
+                onChange={(e) => setHeightCmInput(e.target.value)}
+                placeholder="e.g. 175"
+                required
+              />
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="heightFeet">
+                  Feet
+                </label>
+                <input
+                  id="heightFeet"
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={feetInput}
+                  onChange={(e) => setFeetInput(e.target.value)}
+                  placeholder="e.g. 5"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="label" htmlFor="heightInches">
+                  Inches
+                </label>
+                <input
+                  id="heightInches"
+                  type="number"
+                  min={0}
+                  max={11}
+                  step={1}
+                  value={inchesInput}
+                  onChange={(e) => setInchesInput(e.target.value)}
+                  placeholder="e.g. 11"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
+          <p className="text-sm muted">
+            Normalized height: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{previewHeightCm ?? '—'} cm</span>
+          </p>
+        </fieldset>
+
+        <button type="submit" disabled={loading} className="btn btn-primary w-full sm:w-auto">
+          {loading ? 'Saving assessment…' : 'Save Gene A Assessment'}
+        </button>
+
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      </form>
+    </section>
   );
 }

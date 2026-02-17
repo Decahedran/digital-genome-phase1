@@ -1,8 +1,10 @@
 "use client";
+
 import ProfileList from '@/components/ProfileList';
 import { logoutUser } from '@/lib/auth';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -18,24 +20,47 @@ export default function DashboardPage() {
         setLoading(false);
       }
     });
+
     return () => unsubscribe();
   }, [router]);
 
-  if (loading) return <p>Loading…</p>;
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <main className="page">
+          <p className="muted">Loading dashboard…</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <ProfileList />
-      <button
-        onClick={async () => {
-          await logoutUser();
-          router.push('/login');
-        }}
-        className="mt-8 bg-red-600 text-white p-2 rounded"
-      >
-        Log Out
-      </button>
+    <div className="app-shell">
+      <main className="page space-y-6">
+        <section className="card card-body flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-sm muted">Manage profiles and run assessments from one place.</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link href="/profiles/new" className="btn btn-secondary">
+              New Profile
+            </Link>
+            <button
+              className="btn btn-danger"
+              onClick={async () => {
+                await logoutUser();
+                router.push('/login');
+              }}
+            >
+              Log out
+            </button>
+          </div>
+        </section>
+
+        <ProfileList />
+      </main>
     </div>
   );
 }

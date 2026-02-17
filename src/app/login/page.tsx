@@ -1,6 +1,7 @@
-// src/app/login/page.tsx
 "use client";
+
 import { loginUser } from '@/lib/auth';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -15,55 +16,71 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
     try {
       await loginUser(email, password);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to log in.';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="mx-auto max-w-md p-4">
-      <h1 className="text-2xl font-bold mb-4">Log In</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-        <label className="flex flex-col">
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="border p-2 rounded"
-          />
-        </label>
-        <label className="flex flex-col">
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="border p-2 rounded"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-500"
-        >
-          {loading ? 'Logging in...' : 'Log In'}
-        </button>
-        {error && <p className="text-red-600">{error}</p>}
-      </form>
-      <p className="mt-4 text-sm">
-        Don’t have an account?{' '}
-        <a href="/register" className="text-blue-600 underline">
-          Register
-        </a>
-      </p>
+    <div className="app-shell">
+      <main className="page-narrow">
+        <section className="card card-body space-y-5">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+            <p className="text-sm muted">Log in to manage profiles and continue your assessment pipeline.</p>
+          </header>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="label">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="label">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+
+            <button type="submit" disabled={loading} className="btn btn-primary w-full">
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          </form>
+
+          <p className="text-sm muted">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="font-semibold">
+              Create one
+            </Link>
+          </p>
+        </section>
+      </main>
     </div>
   );
 }

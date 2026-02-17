@@ -1,5 +1,5 @@
-// src/components/TraitEditor.tsx
 "use client";
+
 import { getTraits, mergeTraits } from '@/lib/traits';
 import { useEffect, useState } from 'react';
 
@@ -8,16 +8,15 @@ interface TraitEditorProps {
 }
 
 export default function TraitEditor({ profileId }: TraitEditorProps) {
-  const [traits, setTraits] = useState<{ [key: string]: any }>({});
+  const [traits, setTraits] = useState<Record<string, string | number>>({});
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load traits on mount
     getTraits(profileId).then((doc) => {
-      setTraits(doc?.values || {});
+      setTraits((doc?.values as Record<string, string | number>) || {});
       setLoading(false);
     });
   }, [profileId]);
@@ -25,68 +24,86 @@ export default function TraitEditor({ profileId }: TraitEditorProps) {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const trimmed = name.trim();
-    if (!trimmed) {
-      setError('Trait name is required');
+
+    const traitName = name.trim();
+    if (!traitName) {
+      setError('Trait name is required.');
       return;
     }
-    // Convert to number if possible; otherwise leave as string
-    const numeric = Number(value);
-    const val = isNaN(numeric) ? value : numeric;
+
+    const numericValue = Number(value);
+    const traitValue = Number.isNaN(numericValue) ? value : numericValue;
+
     try {
-      await mergeTraits(profileId, { [trimmed]: val });
-      setTraits((prev) => ({ ...prev, [trimmed]: val }));
+      await mergeTraits(profileId, { [traitName]: traitValue });
+      setTraits((prev) => ({ ...prev, [traitName]: traitValue }));
       setName('');
       setValue('');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update trait.';
+      setError(message);
     }
   };
 
-  if (loading) return <p>Loading traits…</p>;
+  if (loading) {
+    return <p className="muted">Loading traits…</p>;
+  }
 
   return (
-    <div className="mt-6 border p-4 rounded">
-      <h3 className="text-lg font-semibold mb-2">Traits</h3>
+    <section className="card card-body space-y-4">
+      <header>
+        <h2 className="text-xl font-semibold">Trait Editor</h2>
+        <p className="text-sm muted">Manual trait patching for testing and validation.</p>
+      </header>
+
       {Object.keys(traits).length === 0 ? (
-        <p>No traits yet.</p>
+        <p className="rounded-xl border border-dashed p-4 text-sm muted">No traits saved yet for this profile.</p>
       ) : (
-        <ul className="text-sm mb-4">
+        <ul className="space-y-2">
           {Object.entries(traits).map(([key, val]) => (
-            <li key={key} className="flex justify-between border-b py-1">
+            <li key={key} className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm">
               <span className="font-medium">{key}</span>
-              <span>{String(val)}</span>
+              <span className="font-mono">{String(val)}</span>
             </li>
           ))}
         </ul>
       )}
-      <form onSubmit={handleUpdate} className="space-y-2">
-        <div className="flex flex-col">
-          <label className="text-sm font-medium">Trait Name</label>
+
+      <form onSubmit={handleUpdate} className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor="trait-name" className="label">
+            Trait name
+          </label>
           <input
+            id="trait-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border p-1 rounded"
+            placeholder="e.g. physical_height_cm"
           />
         </div>
-        <div className="flex flex-col">
-          <label className="text-sm font-medium">Value (number or text)</label>
+
+        <div>
+          <label htmlFor="trait-value" className="label">
+            Trait value
+          </label>
           <input
+            id="trait-value"
             type="text"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="border p-1 rounded"
+            placeholder="e.g. 180 or high"
           />
         </div>
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-3 py-1 rounded"
-        >
-          Update Trait
-        </button>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+
+        <div className="sm:col-span-2">
+          <button type="submit" className="btn btn-secondary w-full sm:w-auto">
+            Update trait
+          </button>
+        </div>
       </form>
-    </div>
+
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+    </section>
   );
 }

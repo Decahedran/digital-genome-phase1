@@ -1,6 +1,7 @@
-// src/app/register/page.tsx
 "use client";
+
 import { registerUser } from '@/lib/auth';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -16,65 +17,85 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
     try {
       await registerUser(email, password, displayName);
       router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to register.';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="mx-auto max-w-md p-4">
-      <h1 className="text-2xl font-bold mb-4">Create an Account</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
-        <label className="flex flex-col">
-          Display Name
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            required
-            className="border p-2 rounded"
-          />
-        </label>
-        <label className="flex flex-col">
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="border p-2 rounded"
-          />
-        </label>
-        <label className="flex flex-col">
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="border p-2 rounded"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-500"
-        >
-          {loading ? 'Registering...' : 'Register'}
-        </button>
-        {error && <p className="text-red-600">{error}</p>}
-      </form>
-      <p className="mt-4 text-sm">
-        Already have an account?{' '}
-        <a href="/login" className="text-blue-600 underline">
-          Log in
-        </a>
-      </p>
+    <div className="app-shell">
+      <main className="page-narrow">
+        <section className="card card-body space-y-5">
+          <header className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
+            <p className="text-sm muted">Set up your account to start building your Digital Genome profiles.</p>
+          </header>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="displayName" className="label">
+                Display name
+              </label>
+              <input
+                id="displayName"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+                autoComplete="name"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="label">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="label">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+              />
+            </div>
+
+            <button type="submit" disabled={loading} className="btn btn-primary w-full">
+              {loading ? 'Creating account…' : 'Create account'}
+            </button>
+
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          </form>
+
+          <p className="text-sm muted">
+            Already have an account?{' '}
+            <Link href="/login" className="font-semibold">
+              Log in
+            </Link>
+          </p>
+        </section>
+      </main>
     </div>
   );
 }

@@ -47,7 +47,7 @@ export default function GeneAAssessmentPage() {
         }
 
         setProfile({ id: snap.id, ...data });
-      } catch (err) {
+      } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to load profile.';
         setError(message);
       } finally {
@@ -58,22 +58,52 @@ export default function GeneAAssessmentPage() {
     return () => unsubscribe();
   }, [profileId, router]);
 
-  if (loading) return <p className="p-4">Loading…</p>;
-  if (error) return <p className="p-4 text-red-600">Error: {error}</p>;
-  if (!profile) return <p className="p-4">Profile not found.</p>;
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <main className="page">
+          <p className="muted">Loading assessment…</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="app-shell">
+        <main className="page">
+          <p className="text-sm text-red-600">Error: {error}</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="app-shell">
+        <main className="page">
+          <p className="muted">Profile not found.</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4 p-4">
-      <h1 className="text-2xl font-bold">Gene A Assessment</h1>
-      <p className="text-sm text-zinc-700 dark:text-zinc-200">
-        Profile: <span className="font-semibold">{profile.name}</span>
-      </p>
+    <div className="app-shell">
+      <main className="page-narrow space-y-4">
+        <Link href={`/profiles/${profile.id}`} className="text-sm font-medium">
+          ← Back to profile
+        </Link>
 
-      <GeneAAssessmentForm profileId={profile.id} />
+        <section className="card card-body space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight">Gene A Assessment</h1>
+          <p className="text-sm muted">
+            Profile: <span className="font-semibold text-zinc-900 dark:text-zinc-100">{profile.name}</span>
+          </p>
+        </section>
 
-      <Link href={`/profiles/${profile.id}`} className="inline-block text-sm text-blue-600 underline">
-        ← Back to profile
-      </Link>
+        <GeneAAssessmentForm profileId={profile.id} />
+      </main>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+
 import { auth } from '@/lib/firebase';
 import { getProfilesForUser, Profile } from '@/lib/profiles';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -17,40 +18,46 @@ export default function ProfileList() {
       }
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
-  if (loading) return <p>Loading profiles…</p>;
+  if (loading) {
+    return <p className="muted">Loading profiles…</p>;
+  }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Your Profiles</h2>
+    <section className="card card-body space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold">Your Profiles</h2>
+          <p className="text-sm muted">Select a profile to view traits, genome state, and assessments.</p>
+        </div>
+
+        <Link href="/profiles/new" className="btn btn-primary">
+          + New Profile
+        </Link>
+      </div>
+
       {profiles.length === 0 ? (
-        <p>You have no profiles.{' '}
-          <Link href="/profiles/new" className="text-blue-600 underline">
-            Create one
-          </Link>.
+        <p className="rounded-xl border border-dashed p-4 text-sm muted">
+          No profiles yet. Create your first profile to start assessment tracking.
         </p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="grid gap-3 md:grid-cols-2">
           {profiles.map((profile) => (
-            <li key={profile.id} className="border p-3 rounded shadow-sm">
-              <Link href={`/profiles/${profile.id}`} className="text-blue-600 font-medium underline">
-                {profile.name}
-              </Link>
-              <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                Genome: {profile.genomeString}
-              </p>
+            <li key={profile.id} className="rounded-xl border p-4">
+              <div className="space-y-2">
+                <Link href={`/profiles/${profile.id}`} className="text-base font-semibold">
+                  {profile.name}
+                </Link>
+                <p className="text-xs font-semibold uppercase tracking-wide muted">Genome</p>
+                <p className="font-mono text-sm">{profile.genomeString}</p>
+              </div>
             </li>
           ))}
         </ul>
       )}
-      <Link
-        href="/profiles/new"
-        className="inline-block mt-4 bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
-      >
-        + New Profile
-      </Link>
-    </div>
+    </section>
   );
 }

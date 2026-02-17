@@ -1,19 +1,19 @@
 "use client";
 
-import TraitEditor from "@/components/TraitEditor";
-import { auth, db } from "@/lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import TraitEditor from '@/components/TraitEditor';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 type ProfileDoc = {
   userId: string;
   name: string;
   genomeVersion?: string;
   genomeString?: string;
-  createdAt?: any;
+  createdAt?: { toDate?: () => Date };
 };
 
 export default function ProfileDetailPage() {
@@ -22,9 +22,7 @@ export default function ProfileDetailPage() {
   const profileId = params?.profileId;
 
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<(ProfileDoc & { id: string }) | null>(
-    null
-  );
+  const [profile, setProfile] = useState<(ProfileDoc & { id: string }) | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,31 +31,29 @@ export default function ProfileDetailPage() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         if (!user) {
-          router.replace("/login");
+          router.replace('/login');
           return;
         }
 
-        const ref = doc(db, "profiles", profileId);
+        const ref = doc(db, 'profiles', profileId);
         const snap = await getDoc(ref);
 
         if (!snap.exists()) {
-          router.replace("/dashboard");
+          router.replace('/dashboard');
           return;
         }
 
         const data = snap.data() as ProfileDoc;
-
-        // Ownership check (defense in depth; rules should also enforce this)
         if (data.userId !== user.uid) {
-          router.replace("/dashboard");
+          router.replace('/dashboard');
           return;
         }
 
         setProfile({ id: snap.id, ...data });
-        setLoading(false);
-      } catch (e: any) {
-        console.error(e);
-        setError(e?.message ?? "Failed to load profile.");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to load profile.';
+        setError(message);
+      } finally {
         setLoading(false);
       }
     });
@@ -65,37 +61,75 @@ export default function ProfileDetailPage() {
     return () => unsubscribe();
   }, [profileId, router]);
 
-  if (loading) return <p className="p-4">Loading…</p>;
-  if (error) return <p className="p-4 text-red-600">Error: {error}</p>;
-  if (!profile) return <p className="p-4">No profile found.</p>;
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <main className="page">
+          <p className="muted">Loading profile…</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="app-shell">
+        <main className="page">
+          <p className="text-sm text-red-600">Error: {error}</p>
+        </main>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="app-shell">
+        <main className="page">
+          <p className="muted">No profile found.</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 space-y-2">
-      <h1 className="text-2xl font-bold">{profile.name}</h1>
+    <div className="app-shell">
+      <main className="page space-y-6">
+        <Link href="/dashboard" className="text-sm font-medium">
+          ← Back to dashboard
+        </Link>
 
-      <p>
-        <span className="font-semibold">Genome Version:</span>{" "}
-        {profile.genomeVersion ?? "1.2"}
-      </p>
+        <section className="card card-body space-y-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">{profile.name}</h1>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <span className="badge">Genome v{profile.genomeVersion ?? '1.2'}</span>
+              <span className="badge">Profile ID: {profile.id}</span>
+            </div>
+          </div>
 
-      <p>
-        <span className="font-semibold">Genome:</span>{" "}
-        {profile.genomeString ?? "000-000-000-000-000-000-000-000"}
-      </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <article className="rounded-xl border p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide muted">Genome String</p>
+              <p className="mt-2 font-mono text-sm">{profile.genomeString ?? '000-000-000-000-000-000-000-000'}</p>
+            </article>
 
-      <p className="text-sm text-zinc-600 dark:text-zinc-300">
-        Created at: {profile.createdAt?.toDate?.().toLocaleString?.() ?? "N/A"}
-      </p>
+            <article className="rounded-xl border p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide muted">Created</p>
+              <p className="mt-2 text-sm">
+                {profile.createdAt?.toDate?.()?.toLocaleString?.() ?? 'N/A'}
+              </p>
+            </article>
+          </div>
 
-      <Link
-        href={`/profiles/${profile.id}/assessments/gene-a`}
-        className="inline-block rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-      >
-        Take / Retake Gene A Assessment
-      </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/profiles/${profile.id}/assessments/gene-a`} className="btn btn-primary">
+              Take / Retake Gene A
+            </Link>
+          </div>
+        </section>
 
-      {/* Trait system testing UI */}
-      <TraitEditor profileId={profile.id} />
+        <TraitEditor profileId={profile.id} />
+      </main>
     </div>
   );
 }
