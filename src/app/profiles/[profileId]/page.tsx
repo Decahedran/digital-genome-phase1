@@ -37,6 +37,7 @@ export default function ProfileDetailPage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<(ProfileDoc & { id: string }) | null>(null);
   const [geneAValue, setGeneAValue] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -82,6 +83,8 @@ export default function ProfileDetailPage() {
     return () => unsubscribe();
   }, [profileId, router]);
 
+  const genomeString = profile?.genomeString ?? '000-000-000-000-000-000-000-000';
+
   const geneAStatus = useMemo(() => {
     if (geneAValue === null) {
       return {
@@ -97,6 +100,16 @@ export default function ProfileDetailPage() {
       buttonText: 'Retake Assessment',
     };
   }, [geneAValue]);
+
+  const handleCopyGenome = async () => {
+    try {
+      await navigator.clipboard.writeText(genomeString);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -145,9 +158,12 @@ export default function ProfileDetailPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <article className="rounded-xl border p-4">
+            <article className="rounded-xl border p-4 space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wide muted">Genome String</p>
-              <p className="mt-2 font-mono text-sm">{profile.genomeString ?? '000-000-000-000-000-000-000-000'}</p>
+              <p className="font-mono text-sm break-all">{genomeString}</p>
+              <button type="button" onClick={handleCopyGenome} className="btn btn-secondary w-full sm:w-auto">
+                {copied ? 'Copied!' : 'Copy Genome String'}
+              </button>
             </article>
 
             <article className="rounded-xl border p-4">
@@ -160,7 +176,7 @@ export default function ProfileDetailPage() {
         <section className="card card-body space-y-4">
           <h2 className="text-xl font-semibold">Genome Assessments</h2>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="space-y-3">
             <article className="rounded-xl border p-4 space-y-3">
               <div>
                 <h3 className="text-base font-semibold">Gene A: Physicality</h3>
