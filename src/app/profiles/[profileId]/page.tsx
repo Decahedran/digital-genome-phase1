@@ -4,6 +4,7 @@ import TraitEditor from "@/components/TraitEditor";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -85,6 +86,13 @@ export default function ProfileDetailPage() {
       <p className="text-sm text-gray-600">
         Created at: {profile.createdAt?.toDate?.().toLocaleString?.() ?? "N/A"}
       </p>
+
+      <Link
+        href={`/profiles/${profile.id}/assessments/gene-a`}
+        className="inline-block rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+      >
+        Take / Retake Gene A Assessment
+      </Link>
 
       {/* Trait system testing UI */}
       <TraitEditor profileId={profile.id} />
