@@ -96,7 +96,7 @@ export default function ProfileDetailPage() {
 
     return {
       assessed: true,
-      label: `Trait Value: ${String(geneAValue).padStart(3, '0')}`,
+      label: String(geneAValue).padStart(3, '0'),
       buttonText: 'Retake Assessment',
     };
   }, [geneAValue]);
@@ -178,9 +178,12 @@ export default function ProfileDetailPage() {
 
           <div className="space-y-3">
             <article className="rounded-xl border p-4 space-y-3">
-              <div>
-                <h3 className="text-base font-semibold">Gene A: Physicality</h3>
-                <p className="text-sm muted">{geneAStatus.label}</p>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-base font-semibold">Gene A: Physicality</h3>
+                  {geneAStatus.assessed ? <p className="text-base font-semibold text-right">{geneAStatus.label}</p> : null}
+                </div>
+                {!geneAStatus.assessed ? <p className="text-sm muted">Not Assessed</p> : null}
               </div>
 
               <Link href={`/profiles/${profile.id}/assessments/gene-a`} className="btn btn-primary w-full">
