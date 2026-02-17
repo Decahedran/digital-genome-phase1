@@ -83,7 +83,7 @@ export default function ProfileDetailPage() {
         {profile.genomeString ?? "000-000-000-000-000-000-000-000"}
       </p>
 
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-zinc-600 dark:text-zinc-300">
         Created at: {profile.createdAt?.toDate?.().toLocaleString?.() ?? "N/A"}
       </p>
 

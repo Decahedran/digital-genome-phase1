@@ -65,7 +65,7 @@ export default function GeneAAssessmentPage() {
   return (
     <div className="space-y-4 p-4">
       <h1 className="text-2xl font-bold">Gene A Assessment</h1>
-      <p className="text-sm text-gray-700">
+      <p className="text-sm text-zinc-700 dark:text-zinc-200">
         Profile: <span className="font-semibold">{profile.name}</span>
       </p>
 

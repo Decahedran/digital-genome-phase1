@@ -38,7 +38,7 @@ export default function ProfileList() {
               <Link href={`/profiles/${profile.id}`} className="text-blue-600 font-medium underline">
                 {profile.name}
               </Link>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">
                 Genome: {profile.genomeString}
               </p>
             </li>

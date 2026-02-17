@@ -244,7 +244,7 @@ export default function GeneAAssessmentForm({ profileId }: GeneAAssessmentFormPr
         </div>
       )}
 
-      <p className="text-sm text-gray-700">
+      <p className="text-sm text-zinc-700 dark:text-zinc-200">
         Normalized height (cm):{' '}
         <span className="font-semibold">{previewHeightCm ? previewHeightCm : '—'}</span>
       </p>

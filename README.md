@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Digital Genome
 
-## Getting Started
+Digital Genome is a Next.js + Firebase app for building profile-based genomic identity blocks from user traits and assessments.
 
-First, run the development server:
+## Current capabilities
+
+- Email/password auth (register, login, logout)
+- Multi-profile support per user
+- Trait storage per profile (`traits/{profileId}`)
+- Gene A assessment flow:
+  - Saves raw responses to `assessments`
+  - Derives/merges normalized traits
+  - Computes and updates `profiles.genomeBlocks[0]` and `genomeString`
+- Firestore rules stored in repo (`firestore.rules`)
+- Automated Firestore rules deploy via GitHub Actions
+
+## Tech stack
+
+- Next.js (App Router) + React + TypeScript
+- Firebase Auth + Firestore
+- Tailwind CSS v4
+- Vercel hosting
+
+## Local development
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create `.env.local` with Firebase web config:
+
+```bash
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
+
+3. Run dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Firestore rules deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Rules source: `firestore.rules`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Firebase config: `firebase.json`
 
-## Learn More
+### Manual deploy (local)
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+firebase deploy --only firestore:rules --project <your-project-id>
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Automated deploy (GitHub Actions)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Workflow file: `.github/workflows/deploy-firestore-rules.yml`
 
-## Deploy on Vercel
+Triggered on push to `main` when any of these change:
+- `firestore.rules`
+- `firebase.json`
+- workflow file
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+#### Required GitHub secrets
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `FIREBASE_PROJECT_ID`: Firebase project id
+- `FIREBASE_SERVICE_ACCOUNT`: full service account JSON (raw JSON text)
+
+## Theming (light/dark mode)
+
+The app uses browser preference (`prefers-color-scheme`) and global CSS tokens in `src/app/globals.css`.
+
+- Automatically adapts to light/dark mode
+- Form controls (`input/select/textarea`) are globally theme-aware
+- Focus outlines and muted/link colors adapt by theme
+
+## Verification checklist
+
+- GitHub Actions run is green for **Deploy Firestore Rules**
+- Firebase Console → Firestore → Rules shows a recent publish timestamp
+- In dark mode, assessment dropdowns and inputs remain readable
+- Gene A submission updates profile genome block 0 and genome string
